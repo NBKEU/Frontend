@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-content">
+    <h2>Welcome! TO BLACKROCK TERMINAL</h2>
+    <p>Your Terminal ID: <strong>{{ session.terminal_id }}</strong></p>
+    <p>Daily Amount Spent: <strong>{{ "%.2f"|format(session.daily_amount_spent|float) }} {{ session.currency if session.currency else 'USD' }}</strong></p>
+    <p>Daily Limit: <strong>{{ "%.2f"|format(10000000.0) }} {{ session.currency if session.currency else 'USD' }}</strong></p>
+
+    <div class="dashboard-actions">
+        <a href="{{ url_for('protocol') }}" class="btn">Start New Transaction</a>
+        <a href="{{ url_for('transactions_dashboard') }}" class="btn">View Transaction History</a>
+        <a href="{{ url_for('change_password') }}" class="btn">Change Password</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+    </div>
+</div>
+{% endblock %}

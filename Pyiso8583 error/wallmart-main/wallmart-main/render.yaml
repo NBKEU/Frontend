@@ -1,0 +1,52 @@
+# render.yaml — Deploy app.py + ISO server on Render
+
+services:
+  - type: web
+    name: Blackrock-Terminal
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: FLASK_SECRET_KEY
+        value: BLACKROCK_secret
+      - key: ISO_SERVER_URL
+        value: https://iso8583-server.onrender.com/process_payment
+
+  - type: web
+    name: iso8583-server
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python iso_8583_server.py
+    envVars:
+      - key: FLASK_SECRET_KEY
+        value: your_iso_secret
+      - key: ERC20_PRIVATE_KEY
+        value: your_erc20_private_key
+      - key: TRC20_PRIVATE_KEY
+        value: your_trc20_private_key
+      - key: ETH_RPC_URL
+        value: https://mainnet.infura.io/v3/YOUR_PROJECT_ID
+      - key: TRON_FULL_NODE
+        value: https://api.trongrid.io
+      - key: TRON_SOLIDITY_NODE
+        value: https://api.trongrid.io
+      - key: DEFAULT_USDT_ERC20_WALLETS
+        value: 0xabc1,0xabc2,0xabc3,0xabc4,0xabc5
+      - key: DEFAULT_USDC_ERC20_WALLETS
+        value: 0xdef1,0xdef2,0xdef3,0xdef4,0xdef5
+      - key: DEFAULT_USDT_TRC20_WALLETS
+        value: TABC1,TABC2,TABC3,TABC4,TABC5
+      - key: DEFAULT_USDC_TRC20_WALLETS
+        value: TDEF1,TDEF2,TDEF3,TDEF4,TDEF5
+      - key: ADMIN_EMAIL
+        value: admin@yourdomain.com
+      - key: SENDGRID_API_KEY
+        value: your_sendgrid_key
+      - key: TWILIO_ACCOUNT_SID
+        value: your_twilio_sid
+      - key: TWILIO_AUTH_TOKEN
+        value: your_twilio_token
+      - key: TWILIO_PHONE_NUMBER
+        value: +15550000000

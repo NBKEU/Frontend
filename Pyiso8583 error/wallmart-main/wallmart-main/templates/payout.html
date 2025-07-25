@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Select Payout Method</h3>
+<form method="POST" action="{{ url_for('payout') }}" class="form-wrap">
+    <label for="method">Choose a payout method:</label><br>
+    <select name="method" id="method" required onchange="updateWalletDisplay()">
+        <option value="">--Select--</option>
+        <option value="ERC20" {% if session.payout_type == 'ERC20' %}selected{% endif %}>ERC20 (Ethereum)</option>
+        <option value="TRC20" {% if session.payout_type == 'TRC20' %}selected{% endif %}>TRC20 (Tron)</option>
+    </select><br><br>
+
+    <div id="erc20-wallet-info" style="display: none;">
+        <label>Default ERC20 Wallet:</label><br>
+        <p class="wallet-display">{{ default_erc20_wallet }}</p>
+        <input type="hidden" name="erc20_wallet" value="{{ default_erc20_wallet }}">
+    </div>
+
+    <div id="trc20-wallet-info" style="display: none;">
+        <label>Default TRC20 Wallet:</label><br>
+        <p class="wallet-display">{{ default_trc20_wallet }}</p>
+        <input type="hidden" name="trc20_wallet" value="{{ default_trc20_wallet }}">
+    </div>
+
+    <button type="submit">Continue</button>
+</form>
+
+<script>
+function updateWalletDisplay() {
+    const method = document.getElementById('method').value;
+    document.getElementById('erc20-wallet-info').style.display = 'none';
+    document.getElementById('trc20-wallet-info').style.display = 'none';
+
+    if (method === 'ERC20') {
+        document.getElementById('erc20-wallet-info').style.display = 'block';
+    } else if (method === 'TRC20') {
+        document.getElementById('trc20-wallet-info').style.display = 'block';
+    }
+}
+
+// Call on page load to set initial display based on session or default
+document.addEventListener('DOMContentLoaded', updateWalletDisplay);
+</script>
+{% endblock %}

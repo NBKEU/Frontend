@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="transactions-dashboard">
+    <h2>Transaction History</h2>
+
+    {% if transactions %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date/Time</th>
+                <th>Terminal ID</th>
+                <th>Transaction ID</th>
+                <th>Amount</th>
+                <th>Card Last 4</th>
+                <th>Payout Type</th>
+                <th>Wallet</th>
+                <th>Status</th>
+                <th>Tx Hash</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for txn in transactions %}
+            <tr>
+                <td>{{ txn.timestamp }}</td>
+                <td>{{ txn.terminal_id }}</td>
+                <td>{{ txn.transaction_id }}</td>
+                <td>{{ "%.2f"|format(txn.amount) }} {{ txn.currency }}</td>
+                <td>{{ txn.card_pan_last4 }}</td>
+                <td>{{ txn.payout_type }}</td>
+                <td>{{ txn.merchant_wallet[:5] }}...{{ txn.merchant_wallet[-4:] }}</td>
+                <td class="status-{{ txn.status.split('_')[0] }}">{{ txn.status }}</td>
+                <td class="tx-hash">{{ txn.payout_tx_hash if txn.payout_tx_hash != 'N/A' else 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No transactions found for this terminal.</p>
+    {% endif %}
+</div>
+{% endblock %}

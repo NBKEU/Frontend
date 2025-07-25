@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="success-container">
+    <h2 style="color: #0f0;">✅ Transaction Approved</h2>
+    <p><strong>Transaction ID:</strong> {{ txn_id }}</p>
+    <p><strong>Card ending in:</strong> **** **** **** {{ pan }}</p>
+    <p>📧 A copy of the receipt has been sent to your merchant email.</p>
+    {% if payout_tx_hash and payout_tx_hash != 'N/A' %}
+        <p><strong>Payout Tx Hash:</strong> <span class="tx-hash">{{ payout_tx_hash }}</span></p>
+    {% endif %}
+
+    <div class="button-group">
+        <a href="{{ url_for('receipt') }}">
+            <button>🧾 View Receipt </button>
+        </a>
+        <button onclick="window.print()" class="btn-print">🖨️ Print Receipt</button>
+        <a href="{{ url_for('protocol') }}">
+            <button>New Transaction</button>
+        </a>
+    </div>
+</div>
+{% endblock %}

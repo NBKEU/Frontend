@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verifying Transaction...</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      background-color: black;
+      color: #0f0;
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    #binary-stream {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      width: 100vw;
+      height: 100vh;
+      white-space: pre;
+      font-size: 14px;
+      line-height: 16px;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    #decrypting {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 2;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      text-align: center;
+      animation: blink 1s step-start infinite;
+      color: lime;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    #final-message {
+      display: none; /* Hidden initially */
+      position: fixed;
+      z-index: 3;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #222;
+      border: 2px solid #ff4444;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+      text-align: center;
+      color: #fff;
+      animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    #final-message h1 {
+      color: #ff4444;
+      font-size: 2.2rem;
+      margin-bottom: 15px;
+    }
+
+    #final-message p {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .error-code {
+      font-size: 1.3rem;
+      color: #ff8888;
+    }
+
+    .reason {
+      font-style: italic;
+      color: #ccc;
+    }
+
+    .btn {
+      display: inline-block;
+      background-color: #00ff88;
+      color: #000;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #00cc66;
+    }
+
+    @media screen and (max-width: 600px) {
+      #final-message {
+        font-size: 0.9rem;
+        padding: 20px;
+        width: 90%;
+      }
+      #final-message h1 {
+        font-size: 1.8rem;
+      }
+      .error-code, .reason {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="binary-stream"></div>
+  <div id="decrypting">Decrypting file... █</div>
+
+  <div id="final-message">
+    <h1>Transaction Rejected ❌</h1>
+    <p class="error-code">ISO8583 Field 39 Code: <strong>{{ code }}</strong></p>
+    <p class="reason">{{ reason }}</p>
+    <p>Encrypted Protocol Flag: <code>0xDEADBEEF</code></p>
+    <a href="{{ url_for('protocol') }}" class="btn">New Transaction</a>
+  </div>
+
+  <script>
+    const binary = document.getElementById('binary-stream');
+    let chars = "01";
+
+    function generateBinaryStream(lines = 100) {
+      let output = "";
+      for (let i = 0; i < lines; i++) {
+        let line = '';
+        for (let j = 0; j < 100; j++) {
+          line += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        output += line + '\n';
+      }
+      return output;
+    }
+
+    function updateBinary() {
+      binary.innerText = generateBinaryStream();
+    }
+
+    // Update binary stream every 500ms
+    setInterval(updateBinary, 500);
+    updateBinary(); // Initial call
+
+    // Show final message after a delay
+    setTimeout(() => {
+      document.getElementById('decrypting').style.display = 'none';
+      document.getElementById('binary-stream').style.display = 'none';
+      document.getElementById('final-message').style.display = 'block';
+    }, 5000); // Show after 5 seconds
+  </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BLACKROCK</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#1a237e">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <!-- Google Fonts: Inter for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>BLACKROCK TERMINAL</h1>
+            {% if session.logged_in %}
+                <div class="terminal-info">
+                    <span>Terminal ID: <strong>{{ session.terminal_id }}</strong></span>
+                    <span class="user-id-display">User ID: <strong>{{ g.user_id if g.user_id else 'N/A' }}</strong></span>
+                </div>
+            {% endif %}
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, msg in messages %}
+                <p class="flash-{{ category }}">{{ msg }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <nav class="main-nav">
+            <ul>
+                {% if session.logged_in %}
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="{{ url_for('protocol') }}"><i class="fas fa-money-check-alt"></i> New Transaction</a></li>
+                <li><a href="{{ url_for('transactions_dashboard') }}"><i class="fas fa-history"></i> Transaction History</a></li>
+                <li><a href="{{ url_for('change_password') }}"><i class="fas fa-key"></i> Change Password</a></li>
+                <li><a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Service Worker registration commented out to avoid "URL protocol not supported" error in certain environments -->
+    <!--
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(reg => console.log("✅ Service Worker Registered", reg))
+                .catch(err => console.error("❌ Service Worker failed:", err));
+        }
+    </script>
+    -->
+</body>
+</html>

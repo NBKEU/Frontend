@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="POST" action="{{ url_for('card') }}" class="form-wrap">
+    <h2>Manual Card Entry</h2>
+
+    <label>Card Number:</label><br>
+    <input type="text" name="pan" id="card-number" maxlength="19"
+           placeholder="5423 5748 7648 9468" pattern="\d{4} \d{4} \d{4} \d{4}" required><br>
+
+    <label>Expiry Date (MM/YY):</label><br>
+    <input type="text" name="expiry" id="expiry-date"
+           placeholder="09/26" pattern="(0[1-9]|1[0-2])\/\d{2}" maxlength="5" required><br>
+
+    <label>CVV:</label><br>
+    <input type="text" name="cvv" placeholder="123" maxlength="4" pattern="\d{3,4}" required><br>
+
+    <button type="submit">PROCEED TO AUTH</button>
+</form>
+
+<script>
+    // Format Card Number: Add space after every 4 digits
+    const cardInput = document.getElementById('card-number');
+    cardInput.addEventListener('input', () => {
+        let value = cardInput.value.replace(/\D/g, '').substring(0, 16);
+        value = value.replace(/(.{4})/g, '$1 ').trim();
+        cardInput.value = value;
+    });
+
+    // Auto-format MM/YY for Expiry
+    const expiryInput = document.getElementById('expiry-date');
+    expiryInput.addEventListener('input', () => {
+        let value = expiryInput.value.replace(/\D/g, '').substring(0, 4);
+        if (value.length >= 3) {
+            value = value.substring(0, 2) + '/' + value.substring(2);
+        }
+        expiryInput.value = value;
+    });
+</script>
+{% endblock %}
