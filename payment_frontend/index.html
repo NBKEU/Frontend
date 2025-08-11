@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Terminal</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .glow-green {
+            box-shadow: 0 0 15px 5px rgba(34, 197, 94, 0.7);
+        }
+        .glow-red {
+            box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.7);
+        }
+        .glow-blue {
+            box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7);
+        }
+        .glow-orange {
+            box-shadow: 0 0 15px 5px rgba(245, 158, 11, 0.7);
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3b82f6;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .selected-transaction {
+            border: 2px solid #2563eb;
+            background-color: #e0f2fe;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Login Form -->
+    <div id="login-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 md:p-12 transition-all duration-500">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Login</h1>
+            <p class="text-gray-500 mt-2">Enter your credentials</p>
+        </div>
+        <div class="space-y-6">
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="username" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors">
+            </div>
+            <button id="loginBtn" class="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-blue-700 transition-colors duration-200 shadow-lg">
+                Login
+            </button>
+            <div id="login-message" class="text-center text-sm text-red-500 mt-4 hidden">Invalid credentials.</div>
+        </div>
+    </div>
+
+    <!-- Virtual Terminal UI (Initially hidden) -->
+    <div id="terminal-container" class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-8 md:p-12 transition-all duration-500 hidden">
+        <!-- Terminal Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Virtual Terminal</h1>
+            <p class="text-gray-500 mt-2">Process secure payments</p>
+        </div>
+
+        <!-- Canvas Display Area -->
+        <div class="bg-gray-100 rounded-2xl p-6 mb-8 text-center transition-all duration-500 relative">
+            <canvas id="displayCanvas" width="600" height="150" class="w-full h-auto"></canvas>
+            <div id="processing-spinner" class="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 hidden">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- Input Fields -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Card Number -->
+            <div>
+                <label for="cardNumber" class="block text-sm font-medium text-gray-700">Card Number</label>
+                <input type="text" id="cardNumber" placeholder="4111 1111 1111 1111" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" maxlength="19">
+            </div>
+            <!-- Expiry & CVV -->
+            <div class="flex space-x-4">
+                <div class="flex-1">
+                    <label for="expiry" class="block text-sm font-medium text-gray-700">Expiry Date</label>
+                    <input type="text" id="expiry" placeholder="MM/YY" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" maxlength="5">
+                </div>
+                <div class="flex-1">
+                    <label for="cvv" class="block text-sm font-medium text-gray-700">CVV</label>
+                    <input type="text" id="cvv" placeholder="123" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors" maxlength="4">
+                </div>
+            </div>
+            <!-- Amount -->
+            <div class="flex space-x-4">
+                <div class="flex-1">
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
+                    <input type="number" id="amount" placeholder="e.g., 25.50" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors">
+                </div>
+                <div class="flex-none w-24">
+                    <label for="currencySelect" class="block text-sm font-medium text-gray-700">Currency</label>
+                    <select id="currencySelect" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors">
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                    </select>
+                </div>
+            </div>
+             <!-- Authorization Code -->
+            <div>
+                <label for="authCode" class="block text-sm font-medium text-gray-700">Authorization Code</label>
+                <input type="text" id="authCode" placeholder="e.g., AB12CD34" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors">
+            </div>
+            <!-- Protocols Dropdown -->
+            <div class="md:col-span-2">
+                <label for="protocolSelect" class="block text-sm font-medium text-gray-700">Protocol</label>
+                <select id="protocolSelect" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none transition-colors">
+                    <option value="101.1">POS Terminal -101.1 (4-digit approval)</option>
+                    <option value="101.4">POS Terminal -101.4 (6-digit approval)</option>
+                    <option value="101.6">POS Terminal -101.6 (Pre-authorization)</option>
+                    <option value="101.7">POS Terminal -101.7 (4-digit approval)</option>
+                    <option value="101.8">POS Terminal -101.8 (PIN-LESS transaction)</option>
+                    <option value="201.1">POS Terminal -201.1 (6-digit approval)</option>
+                    <option value="201.3">POS Terminal -201.3 (6-digit approval)</option>
+                    <option value="201.5">POS Terminal -201.5 (6-digit approval)</option>
+                </select>
+            </div>
+            <!-- Crypto Payout Selection & Wallet Display -->
+            <div class="md:col-span-2" id="payoutDisplayContainer">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Merchant Payout</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <select id="networkSelect" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-orange-500 focus:ring-orange-500 focus:outline-none transition-colors">
+                            <option value="ERC-20">USDT (ERC-20)</option>
+                            <option value="TRC-20">USDT (TRC-20)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="text" id="merchantWallet" placeholder="Wallet Address" class="mt-1 block w-full px-4 py-3 bg-gray-50 border-gray-300 rounded-xl shadow-sm focus:border-orange-500 focus:ring-orange-500 focus:outline-none transition-colors">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button id="confirmBtn" class="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-blue-700 transition-colors duration-200 shadow-lg">
+                Process Transaction
+            </button>
+            <button id="clearBtn" class="w-full bg-gray-400 text-white font-bold py-4 px-6 rounded-2xl hover:bg-gray-500 transition-colors duration-200 shadow-lg">
+                Clear
+            </button>
+            <button id="printBtn" class="w-full bg-teal-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-teal-700 transition-colors duration-200 shadow-lg hidden">
+                Print Receipt
+            </button>
+            <button id="historyBtn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-indigo-700 transition-colors duration-200 shadow-lg">
+                Transaction History
+            </button>
+            <button id="logoutBtn" class="w-full bg-red-600 text-white font-bold py-4 px-6 rounded-2xl hover:bg-red-700 transition-colors duration-200 shadow-lg">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Transaction History Modal (Initially hidden) -->
+    <div id="history-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 w-full max-w-2xl fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Transaction History</h2>
+                <button id="closeHistoryBtn" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            <div id="history-list" class="space-y-4 max-h-96 overflow-y-auto">
+                <p class="text-gray-500 text-center">No history available.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to your separate JavaScript file -->
+    <script src="main.js"></script>
+</body>
+</html>
