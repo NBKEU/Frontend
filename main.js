@@ -32,8 +32,8 @@ let transactionHistory = [];
 let lastTransaction = null;
 
 const DUMMY_WALLETS = {
-    'ERC-20': '0x06674B3fa1d1d6e5813cDC18d4091D499084Bdd8',
-    'TRC-20': 'TVFXRFmnsRScgPs1sCH7aDCtbq2iocU33Q'
+    'ERC-20': '0x73F888dcE062d2acD4A7688386F0f92f43055491',
+    'TRC-20': 'TKMpfYsTRWJ8W4QUUiUc6XT8cJ8UWkzSLT'
 };
 
 // IMPORTANT: Replace this with your actual Render backend URL
