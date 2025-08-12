@@ -37,6 +37,7 @@ const DUMMY_WALLETS = {
 };
 
 const BACKEND_URL = "https://benz-wyw5.onrender.com";
+const isTestMode = true; // Use this flag to switch between Test and Production modes
 
 const canvasWidth = displayCanvas.width;
 const canvasHeight = displayCanvas.height;
@@ -102,12 +103,13 @@ async function processTransaction() {
         return;
     }
 
-    // --- Removed hardcoded MO/M1 logic from frontend ---
-    // The backend now determines if it's an onledger or offledger transaction
-    const payoutType = `USDT-${payoutNetwork}`;
-    
+    const offledgerProtocols = ["POS Terminal -101.8 (PIN-LESS transaction)", "POS Terminal -201.3 (6-digit approval)", "POS Terminal -201.5 (6-digit approval)"];
+    const isOffledger = offledgerProtocols.includes(fullProtocolName);
+    const payoutType = isOffledger ? `USDT-${payoutNetwork}` : null;
+    const requestType = isOffledger ? 'Offline Sale' : 'Online Sale';
+
     processingSpinner.classList.remove('hidden');
-    updateDisplay(`Processing request...`, amount, 'blue');
+    updateDisplay(`Processing ${requestType} request...`, amount, 'blue');
     confirmBtn.disabled = true;
 
     try {
@@ -120,10 +122,10 @@ async function processTransaction() {
             auth_code: authCode,
             protocol: fullProtocolName,
             payout_type: payoutType,
-            merchant_wallet: merchantWallet
+            merchant_wallet: merchantWallet,
+            is_test: isTestMode // <-- NEW: Send the test mode flag to the backend
         };
         
-        // --- CORRECTED: Wait for the actual backend response ---
         const response = await fetch(`${BACKEND_URL}/api/v1/payments/process`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -134,7 +136,7 @@ async function processTransaction() {
 
         if (response.ok) {
             const status = "Confirmed Success";
-            const color = result.status === 'success' ? 'orange' : 'green';
+            const color = result.payout_type ? 'orange' : 'green';
             const details = result.tx_hash ? `Hash: ${result.tx_hash.substring(0, 10)}...` : `Auth Code: ${result.transaction_id.substring(4, 10)}`;
             updateDisplay(status, amount, color, details);
             printBtn.classList.remove('hidden');
