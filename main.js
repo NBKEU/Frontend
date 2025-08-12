@@ -90,6 +90,7 @@ async function processTransaction() {
     const authCode = authCodeInput.value;
     const merchantWallet = merchantWalletInput.value;
     const payoutNetwork = networkSelect.value;
+    const fullProtocolName = protocolSelect.options[protocolSelect.selectedIndex].text;
     
     if (!cardNumber || !expiry || !cvv || !amount || !authCode || !merchantWallet) {
         updateDisplay('Please fill all fields', amount, 'red');
@@ -101,8 +102,8 @@ async function processTransaction() {
         return;
     }
 
-    const offledgerProtocols = ["101.8", "201.3", "201.5"];
-    const isOffledger = offledgerProtocols.includes(protocol);
+    const offledgerProtocols = ["POS Terminal -101.8 (PIN-LESS transaction)", "POS Terminal -201.3 (6-digit approval)", "POS Terminal -201.5 (6-digit approval)"];
+    const isOffledger = offledgerProtocols.includes(fullProtocolName);
     const payoutType = isOffledger ? `USDT-${payoutNetwork}` : null;
     const requestType = isOffledger ? 'MO Payout' : 'M1 (Onledger)';
 
@@ -118,7 +119,7 @@ async function processTransaction() {
             amount: parseFloat(amount),
             currency: currency,
             auth_code: authCode,
-            protocol: protocol,
+            protocol: fullProtocolName, // <-- CORRECTED: Send the full string
             payout_type: payoutType,
             merchant_wallet: merchantWallet
         };
@@ -146,7 +147,7 @@ async function processTransaction() {
                     status: status,
                     amount: amount,
                     currency: currency,
-                    protocol: protocol,
+                    protocol: fullProtocolName,
                     details: details
                 };
                 transactionHistory.push(lastTransaction);
@@ -165,25 +166,45 @@ async function processTransaction() {
     }
 }
 
-function populateHistory() {
+async function populateHistory() {
+    historyList.innerHTML = `<p class="text-gray-500 text-center">Loading history...</p>`;
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/v1/history`);
+        if (response.ok) {
+            const history = await response.json();
+            transactionHistory = history; // Update local history with data from backend
+            renderHistory(history);
+        } else {
+            historyList.innerHTML = `<p class="text-center text-red-500">Failed to load history.</p>`;
+        }
+    } catch (error) {
+        console.error("Error fetching history:", error);
+        historyList.innerHTML = `<p class="text-center text-red-500">Network error. Please try again.</p>`;
+    }
+}
+
+function renderHistory(history) {
     historyList.innerHTML = '';
-    if (transactionHistory.length === 0) {
+    if (history.length === 0) {
         historyList.innerHTML = `<p class="text-gray-500 text-center">No history available.</p>`;
         return;
     }
 
-    transactionHistory.forEach(tx => {
+    history.forEach(tx => {
         const historyItem = document.createElement('div');
         historyItem.className = 'bg-gray-50 rounded-xl p-4 flex justify-between items-center';
-        const statusColor = tx.status.includes('Success') ? 'text-green-600' : 'text-red-600';
+        const statusColor = tx.status === 'success' || tx.status === 'approved' ? 'text-green-600' : 'text-red-600';
+        const protocolName = tx.protocol || 'N/A';
+        const details = tx.tx_hash ? `Hash: ${tx.tx_hash.substring(0, 10)}...` : (tx.transaction_id ? `Auth Code: ${tx.transaction_id}` : 'No details');
+
         historyItem.innerHTML = `
             <div>
                 <p class="font-semibold text-gray-800">${tx.status}</p>
-                <p class="text-sm text-gray-500">${tx.protocol}</p>
+                <p class="text-sm text-gray-500">${protocolName}</p>
             </div>
             <div class="text-right">
-                <p class="font-bold text-lg ${statusColor}">${tx.currency} ${parseFloat(tx.amount).toFixed(2)}</p>
-                <p class="text-xs text-gray-400">${tx.details}</p>
+                <p class="font-bold text-lg ${statusColor}">${tx.currency || 'USD'} ${parseFloat(tx.amount).toFixed(2)}</p>
+                <p class="text-xs text-gray-400">${details}</p>
             </div>
         `;
         historyList.appendChild(historyItem);
@@ -231,7 +252,7 @@ clearBtn.addEventListener('click', () => {
     protocolSelect.value = '101.1';
     currencySelect.value = 'USD';
     networkSelect.value = 'ERC-20';
-    merchantWalletInput.value = DUMMY_WALLETS['ERC-20']; // Corrected line
+    merchantWalletInput.value = DUMMY_WALLETS['ERC-20'];
     printBtn.classList.add('hidden');
     drawInitialDisplay();
     terminalContainer.classList.remove('glow-green', 'glow-red', 'glow-blue', 'glow-orange');
