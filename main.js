@@ -32,7 +32,7 @@ let transactionHistory = [];
 let lastTransaction = null;
 
 const DUMMY_WALLETS = {
-    'ERC-20': '0x73F888dcE062d2acD4A7688386F0f92f43055491',
+    'ERC-20': '0x06674B3fa1d1d6e5813cDC18d4091D499084Bdd8',
     'TRC-20': 'TKMpfYsTRWJ8W4QUUiUc6XT8cJ8UWkzSLT'
 };
 
@@ -102,13 +102,12 @@ async function processTransaction() {
         return;
     }
 
-    const offledgerProtocols = ["POS Terminal -101.8 (PIN-LESS transaction)", "POS Terminal -201.3 (6-digit approval)", "POS Terminal -201.5 (6-digit approval)"];
-    const isOffledger = offledgerProtocols.includes(fullProtocolName);
-    const payoutType = isOffledger ? `USDT-${payoutNetwork}` : null;
-    const requestType = isOffledger ? 'MO Payout' : 'M1 (Onledger)';
-
+    // --- Removed hardcoded MO/M1 logic from frontend ---
+    // The backend now determines if it's an onledger or offledger transaction
+    const payoutType = `USDT-${payoutNetwork}`;
+    
     processingSpinner.classList.remove('hidden');
-    updateDisplay(`Processing ${requestType} request...`, amount, 'blue');
+    updateDisplay(`Processing request...`, amount, 'blue');
     confirmBtn.disabled = true;
 
     try {
@@ -119,13 +118,12 @@ async function processTransaction() {
             amount: parseFloat(amount),
             currency: currency,
             auth_code: authCode,
-            protocol: fullProtocolName, // <-- CORRECTED: Send the full string
+            protocol: fullProtocolName,
             payout_type: payoutType,
             merchant_wallet: merchantWallet
         };
         
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 5000 + 15000));
-
+        // --- CORRECTED: Wait for the actual backend response ---
         const response = await fetch(`${BACKEND_URL}/api/v1/payments/process`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -133,29 +131,24 @@ async function processTransaction() {
         });
         
         const result = await response.json();
-        let detailsText = '';
 
         if (response.ok) {
-            if (result.status === 'success' || result.status === 'approved') {
-                const status = "Confirmed Success";
-                const color = result.status === 'success' ? 'orange' : 'green';
-                const details = result.tx_hash ? `Hash: ${result.tx_hash.substring(0, 10)}...` : `Auth Code: ${result.transaction_id.substring(4, 10)}`;
-                updateDisplay(status, amount, color, details);
-                printBtn.classList.remove('hidden');
-                lastTransaction = {
-                    id: transactionHistory.length + 1,
-                    status: status,
-                    amount: amount,
-                    currency: currency,
-                    protocol: fullProtocolName,
-                    details: details
-                };
-                transactionHistory.push(lastTransaction);
-            } else {
-                updateDisplay('Rejected', amount, 'red', result.message);
-            }
+            const status = "Confirmed Success";
+            const color = result.status === 'success' ? 'orange' : 'green';
+            const details = result.tx_hash ? `Hash: ${result.tx_hash.substring(0, 10)}...` : `Auth Code: ${result.transaction_id.substring(4, 10)}`;
+            updateDisplay(status, amount, color, details);
+            printBtn.classList.remove('hidden');
+            lastTransaction = {
+                id: transactionHistory.length + 1,
+                status: status,
+                amount: amount,
+                currency: currency,
+                protocol: fullProtocolName,
+                details: details
+            };
+            transactionHistory.push(lastTransaction);
         } else {
-            updateDisplay('Rejected', amount, 'red', result.message || 'Transaction Failed!');
+            updateDisplay('Rejected', amount, 'red', result.message);
         }
     } catch (error) {
         console.error("API call failed:", error);
@@ -172,7 +165,7 @@ async function populateHistory() {
         const response = await fetch(`${BACKEND_URL}/api/v1/history`);
         if (response.ok) {
             const history = await response.json();
-            transactionHistory = history; // Update local history with data from backend
+            transactionHistory = history;
             renderHistory(history);
         } else {
             historyList.innerHTML = `<p class="text-center text-red-500">Failed to load history.</p>`;
