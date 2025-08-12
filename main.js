@@ -232,7 +232,7 @@ clearBtn.addEventListener('click', () => {
     protocolSelect.value = '101.1';
     currencySelect.value = 'USD';
     networkSelect.value = 'ERC-20';
-    merchantWalletInput.value = DUMMY_WALLETS['ERC-20'];
+    // Removed the line that sets the merchant wallet input value
     printBtn.classList.add('hidden');
     drawInitialDisplay();
     terminalContainer.classList.remove('glow-green', 'glow-red', 'glow-blue', 'glow-orange');
