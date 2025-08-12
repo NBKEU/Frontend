@@ -37,7 +37,7 @@ const DUMMY_WALLETS = {
 };
 
 // IMPORTANT: Replace this with your actual Render backend URL
-const BACKEND_URL = "https://your-backend-service.onrender.com";
+const BACKEND_URL = "https://benz-wyw5.onrender.com";
 
 const canvasWidth = displayCanvas.width;
 const canvasHeight = displayCanvas.height;
