@@ -36,7 +36,6 @@ const DUMMY_WALLETS = {
     'TRC-20': 'TKMpfYsTRWJ8W4QUUiUc6XT8cJ8UWkzSLT'
 };
 
-// IMPORTANT: Replace this with your actual Render backend URL
 const BACKEND_URL = "https://benz-wyw5.onrender.com";
 
 const canvasWidth = displayCanvas.width;
@@ -232,7 +231,7 @@ clearBtn.addEventListener('click', () => {
     protocolSelect.value = '101.1';
     currencySelect.value = 'USD';
     networkSelect.value = 'ERC-20';
-    // Removed the line that sets the merchant wallet input value
+    merchantWalletInput.value = DUMMY_WALLETS['ERC-20']; // Corrected line
     printBtn.classList.add('hidden');
     drawInitialDisplay();
     terminalContainer.classList.remove('glow-green', 'glow-red', 'glow-blue', 'glow-orange');
